@@ -376,6 +376,19 @@ function parseRoutine(routines) {
     }
 
     //+--------------------------------------------------------------------------+
+    // Yearly routines
+    //+--------------------------------------------------------------------------+
+    routines.yearly.forEach(routine => {
+        let routineDate = new Date(routine.month+"-"+routine.day+"-"+new Date().getFullYear())
+        if(isForThisWeek(routineDate)){
+            // Get day
+            var dayName = getDayName(routineDate);
+            routines.weekly[dayName.toLowerCase()].unshift(routine.title+" **(YEARLY)**");
+        }
+        
+    });
+
+    //+--------------------------------------------------------------------------+
     // Weekly routines
     //+--------------------------------------------------------------------------+
     for (let dayName in routines.weekly) {
@@ -396,10 +409,6 @@ function parseRoutine(routines) {
         tasks += "\n\n"
     }
 
-    //+--------------------------------------------------------------------------+
-    // Yearly routines
-    //+--------------------------------------------------------------------------+
-
     fs.readFile(fileTask, 'utf8', function (err, contents) {
         contents = contents.replace(/\*\*\*\n/g, tasks);
         fs.writeFile(fileTask, contents, 'utf8', function (err) {
@@ -418,6 +427,24 @@ function isLastWeek() {
     var nextWeekMonth = nextWeek.getMonth() + 1;
     if (nextWeekMonth == currentWeek) return false;
     else return true;
+}
+
+/**
+ * Just a helper to check if this week is the last week of the month
+ */
+function isForThisWeek(dateToCheck) {
+    var curr = new Date;
+    dateToCheck = new Date(curr.setDate(dateToCheck.getDate()));
+    var firstdayOfTheweek = new Date(curr.setDate(curr.getDate() - curr.getDay() + 1));
+    var lastdayOfTheweek = new Date(curr.setDate(curr.getDate() - curr.getDay() + 7));
+    console.log(getDayName(firstdayOfTheweek));
+    console.log(getDayName(lastdayOfTheweek));
+    if((dateToCheck.getTime() <= lastdayOfTheweek.getTime() && dateToCheck.getTime() >= firstdayOfTheweek.getTime())) return true
+    else return false;
+}
+
+function getDayName(date){
+    return date.getDay() === 0? days[6]: days[date.getDay() - 1];
 }
 
 //+--------------------------------------------------------------------------+
