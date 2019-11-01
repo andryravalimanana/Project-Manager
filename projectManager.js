@@ -422,12 +422,14 @@ function parseRoutine(routines) {
         tasks += "\n\n"
     }
 
+    // Update routine.json file
     fs.readFile(routineFile, 'utf8', function (err, contents) {
         fs.writeFile(routineFile, JSON.stringify(originalRoutineData), 'utf8', function (err) {
             if (err) return console.log(err);
         });
     });
 
+    // Update task_xxxx.md file
     fs.readFile(fileTask, 'utf8', function (err, contents) {
         contents = contents.replace(/\*\*\*\n/g, tasks);
         fs.writeFile(fileTask, contents, 'utf8', function (err) {
@@ -461,6 +463,10 @@ function isForThisWeek(dateToCheck) {
     else return false;
 }
 
+/**
+ * Get Day name of the week from date object
+ * @param  {} date date
+ */
 function getDayName(date) {
     return date.getDay() === 0 ? days[6] : days[date.getDay() - 1];
 }
