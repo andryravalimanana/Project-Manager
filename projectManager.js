@@ -365,6 +365,7 @@ function generateRoutine() {
  * @param  {} routines routine data
  */
 function parseRoutine(routines) {
+     let originalRoutineData = JSON.parse(JSON.stringify(routines))
     var today = new Date();
     var tasks = '***\n### ' + today.getDay() + ' ' + monthArray[today.getMonth()] + ' ' + today.getFullYear() + '\n';
 
@@ -379,7 +380,7 @@ function parseRoutine(routines) {
     // Yearly routines
     //+--------------------------------------------------------------------------+
     routines.yearly.forEach(routine => {
-        let routineDate = new Date(routine.month + "-" + routine.day + "-" + new Date().getFullYear())
+        let routineDate = new Date(routine.month + "-" + routine.day + "-" + new Date().getFullYear());
         if (isForThisWeek(routineDate)) {
             // Get day
             var dayName = getDayName(routineDate);
@@ -396,7 +397,7 @@ function parseRoutine(routines) {
             // Get day
             var dayName = getDayName(eventDate);
             routines.weekly[dayName.toLowerCase()].unshift(event.description + " **(EVENT)**");
-            routines.events.splice(index, 1);;
+            originalRoutineData.events.splice(index, 1);
         }
     });
 
@@ -422,7 +423,7 @@ function parseRoutine(routines) {
     }
 
     fs.readFile(routineFile, 'utf8', function (err, contents) {
-        fs.writeFile(routineFile, JSON.stringify(routines), 'utf8', function (err) {
+        fs.writeFile(routineFile, JSON.stringify(originalRoutineData), 'utf8', function (err) {
             if (err) return console.log(err);
         });
     });
@@ -452,9 +453,10 @@ function isLastWeek() {
  */
 function isForThisWeek(dateToCheck) {
     var curr = new Date;
-    dateToCheck = new Date(curr.setDate(dateToCheck.getDate()));
     var firstdayOfTheweek = new Date(curr.setDate(curr.getDate() - curr.getDay() + 1));
     var lastdayOfTheweek = new Date(curr.setDate(curr.getDate() - curr.getDay() + 7));
+    firstdayOfTheweek.setHours(0,0,0,0);
+    lastdayOfTheweek.setHours(0,0,0,0);
     if ((dateToCheck.getTime() <= lastdayOfTheweek.getTime() && dateToCheck.getTime() >= firstdayOfTheweek.getTime())) return true
     else return false;
 }
