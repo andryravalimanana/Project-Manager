@@ -26,6 +26,7 @@ const rl = readline.createInterface({
     output: process.stdout
 });
 
+
 function helpMessage(){
     console.log("-t: Generate todo list\n" +
                 "-a: Archive project\n" +
@@ -45,10 +46,17 @@ var routineFile = "/home/andry/Yandex.Disk/Planning/Routine.assets/routines.json
 //+------------------------------------------------------------+
 // GENERATE TODOLIST
 //+------------------------------------------------------------+
+
+/**
+ * Main function to generate todoList from json data
+ */
 function generateToDoList() {
     parseProjectContents();
 }
 
+/**
+ * Parse raw project contents
+ */
 function parseProjectContents() {
     var weekTasks = [];
     fs.readFile(fileProject, 'utf8', function (err, contents) {
@@ -70,25 +78,41 @@ function parseProjectContents() {
     });
 }
 
-function getProjectTitle(rawProjectTitle) {
-    var t = rawProjectTitle.match(/#### (.*?)\n/g)[0];
+
+/**
+ * Get project title from raw data
+ * @param  {} rawProject raw project data
+ */
+function getProjectTitle(rawProject) {
+    var t = rawProject.match(/#### (.*?)\n/g)[0];
     t = t.replace("#### ", "");
     t = t.replace("\n", "");
     return t;
 }
 
+/**
+ * Insert key id to each task
+ * @param  {} task task instance
+ */
 function insertKeyId(task) {
     var keyId = uuidv4();
     task = task.replace('- [ ] ', '- [ ] _[@](' + keyId + ')');
     return task;
 }
 
+/**
+ * Insert metadata to each task instance
+ * @param  {} task task instance
+ * @param  {} projectTitle Title of the project
+ */
 function insertMetadata(task, projectTitle) {
     task = task.replace('- [ ] ', '- [ ] ' + projectTitle + ' | ');
     return task;
 }
 
-// generate uuidv4 
+/**
+ * generate uuidv4 unique code
+ */
 function uuidv4() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
         var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -96,6 +120,10 @@ function uuidv4() {
     });
 }
 
+/**
+ * Add weekly task in task stack if there is in json file
+ * @param  {} weekTasks weekly tasks list
+ */
 function writeIntoTodoListTask(weekTasks) {
     var taskSrt = "#### TODOLIST\n";
     weekTasks.forEach((el) => {
@@ -110,6 +138,11 @@ function writeIntoTodoListTask(weekTasks) {
     });
 }
 
+/**
+ * Update task status in project: In progress, done, not started.
+ * @param  {} weekTasks weekly tasks list
+ * @param  {} rawContents task raw data
+ */
 function updateTaskStatusInProject(weekTasks, rawContents) {
     fs.readFile(fileProject, 'utf8', function (err, contents) {
         /*
@@ -131,6 +164,9 @@ function updateTaskStatusInProject(weekTasks, rawContents) {
 // UPDATE TASK STATUS
 //+------------------------------------------------------------+
 
+/**
+ * Update task status: In progress, done, not started.
+ */
 function updateTaskStatus() {
     var taskContent = "";
     fs.readFile(fileTask, 'utf8', function (err, contents) {
@@ -150,6 +186,10 @@ function updateTaskStatus() {
     });
 }
 
+/**
+ * get element code
+ * @param  {} element element code
+ */
 function getCode(element) {
     return element.match(/_\[@\]\((.*?)\)/g)[0];
 }
@@ -157,6 +197,10 @@ function getCode(element) {
 //+------------------------------------------------------------+
 // SORT PROJECT
 //+------------------------------------------------------------+
+
+/**
+ * Sort list project
+ */
 function sortProject() {
     let raw = execSync('xclip -out -selection clipboard');
     let contents = raw.toString();
@@ -173,6 +217,10 @@ function sortProject() {
 //+------------------------------------------------------------+
 // ARCHIVE PROJECT
 //+------------------------------------------------------------+
+
+/**
+ * Achive prject in cloud
+ */
 function ArchiveProject() {
     let raw = execSync('xclip -out -selection clipboard');
     let contents = raw.toString();
@@ -190,6 +238,10 @@ function ArchiveProject() {
     tasks = [];
 }
 
+/**
+ * Get all active date
+ * @param  {} contents markdown file contents
+ */
 function getallDate(contents) {
     let day = 0;
     let month = 0;
@@ -215,6 +267,10 @@ function getallDate(contents) {
     });
 }
 
+/**
+ * Get nextdate from current date
+ * @param  {} currentDate current date
+ */
 function getNextDate(currentDate) {
     var currentDateObj = new Date(currentDate.join("-"));
     currentDateObj.setDate(currentDateObj.getDate() + 1);
@@ -222,6 +278,10 @@ function getNextDate(currentDate) {
     return currentDate;
 }
 
+/**
+ * Format task for archiving
+ * @param  {} contents task contents
+ */
 function formatTaskForArchiving(contents) {
     days.forEach(day => {
         var re = new RegExp("#### " + day + "\\n[^####]*#{1,}");
@@ -230,6 +290,11 @@ function formatTaskForArchiving(contents) {
     });
 }
 
+/**
+ * Get all task by day
+ * @param  {} day given date
+ * @param  {} rawContent raw content task data
+ */
 function getTasksFrom(day, rawContent) {
     let task = rawContent.match(/- \[x\] (.*?)\n/g);
     if (task) {
@@ -245,6 +310,10 @@ function getTasksFrom(day, rawContent) {
 //+------------------------------------------------------------+
 // FORMAT TASKS
 //+------------------------------------------------------------+
+
+/**
+ * Format task
+ */
 function formatTask(){
     var tasks = "";
     var oldTasks = "- [ ] "; // Add space in beginning
@@ -279,6 +348,9 @@ function formatTask(){
 // ROUTINE
 //+------------------------------------------------------------+
 
+/**
+ * Generate weekly routine from routine json file
+ */
 function generateRoutine() {
     console.log("Generate routine");
     fs.readFile(routineFile, 'utf8', function (err, contents) {
@@ -286,7 +358,10 @@ function generateRoutine() {
         parseRoutine(routines);
     });
 }
-
+/**
+ * Parse raw routine data
+ * @param  {} routines routine data
+ */
 function parseRoutine(routines) {
     var today = new Date();
     var tasks = '***\n### '+today.getDay()+' '+monthArray[today.getMonth()]+' '+today.getFullYear()+'\n';
@@ -331,6 +406,9 @@ function parseRoutine(routines) {
     });
 }
 
+/**
+ * Just a helper to check if this week is the last week of the month
+ */
 function isLastWeek() {
     var today = new Date();
     var currentWeek = today.getMonth() + 1;
@@ -340,7 +418,9 @@ function isLastWeek() {
     else return true;
 }
 
+//+--------------------------------------------------------------------------+
 // Commande line params
+//+--------------------------------------------------------------------------+
 params = process.argv[2];
 
 switch (params) {
@@ -373,6 +453,9 @@ switch (params) {
         exitSystem();
 }
 
+/**
+ * Exit system
+ */
 function exitSystem(){
     setTimeout(() => {
         process.exit(0);
