@@ -26,7 +26,9 @@ const rl = readline.createInterface({
     output: process.stdout
 });
 
-
+/**
+ * Just an helper to display avalable commande line
+ */
 function helpMessage(){
     console.log("-t: Generate todo list\n" +
                 "-a: Archive project\n" +
