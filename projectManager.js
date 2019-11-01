@@ -29,12 +29,12 @@ const rl = readline.createInterface({
 /**
  * Just an helper to display avalable commande line
  */
-function helpMessage(){
+function helpMessage() {
     console.log("-t: Generate todo list\n" +
-                "-a: Archive project\n" +
-                "-r: Generate routine\n"+
-                "-f: Format tasks\n"+
-                "-h: Helps\n"
+        "-a: Archive project\n" +
+        "-r: Generate routine\n" +
+        "-f: Format tasks\n" +
+        "-h: Helps\n"
     );
 }
 
@@ -316,26 +316,26 @@ function getTasksFrom(day, rawContent) {
 /**
  * Format task
  */
-function formatTask(){
+function formatTask() {
     var tasks = "";
     var oldTasks = "- [ ] "; // Add space in beginning
     let raw = execSync('xclip -out -selection primary');
-    let contents = raw.toString()+"\n\n";
+    let contents = raw.toString() + "\n\n";
     var rawContents = contents.match(/(.*?)\n\n/g);
     // Get title
     var rawTitle = rawContents[0];
-    if(rawTitle){
-        rawTitle = rawTitle.replace(/\n/g,"");
+    if (rawTitle) {
+        rawTitle = rawTitle.replace(/\n/g, "");
         rawContents.shift();
-        oldTasks += rawTitle+"\n";
+        oldTasks += rawTitle + "\n";
     }
     // Get tasks
     rawContents.forEach((el) => {
         // Remove HR
-        el = el.replace(/\n/g,"");
-        oldTasks += "  - [ ] "+el+"\n";
+        el = el.replace(/\n/g, "");
+        oldTasks += "  - [ ] " + el + "\n";
         // Create - [ ] for new tasks
-        tasks += "- [ ] "+ rawTitle + " | "+ el +"\n";
+        tasks += "- [ ] " + rawTitle + " | " + el + "\n";
     });
     // Replace contents
     fs.readFile(fileTask, 'utf8', function (err, contents) {
@@ -366,8 +366,8 @@ function generateRoutine() {
  */
 function parseRoutine(routines) {
     var today = new Date();
-    var tasks = '***\n### '+today.getDay()+' '+monthArray[today.getMonth()]+' '+today.getFullYear()+'\n';
-    
+    var tasks = '***\n### ' + today.getDay() + ' ' + monthArray[today.getMonth()] + ' ' + today.getFullYear() + '\n';
+
     // Add monthly task if today is lastweek of the month
     if (isLastWeek()) {
         for (let day in routines.monthly) {
@@ -379,13 +379,25 @@ function parseRoutine(routines) {
     // Yearly routines
     //+--------------------------------------------------------------------------+
     routines.yearly.forEach(routine => {
-        let routineDate = new Date(routine.month+"-"+routine.day+"-"+new Date().getFullYear())
-        if(isForThisWeek(routineDate)){
+        let routineDate = new Date(routine.month + "-" + routine.day + "-" + new Date().getFullYear())
+        if (isForThisWeek(routineDate)) {
             // Get day
             var dayName = getDayName(routineDate);
-            routines.weekly[dayName.toLowerCase()].unshift(routine.title+" **(YEARLY)**");
+            routines.weekly[dayName.toLowerCase()].unshift(routine.description + " **(YEARLY)**");
         }
-        
+    });
+
+    //+--------------------------------------------------------------------------+
+    // Add events
+    //+--------------------------------------------------------------------------+
+    routines.events.forEach((event, index) => {
+        let eventDate = new Date(event.date);
+        if (isForThisWeek(eventDate)) {
+            // Get day
+            var dayName = getDayName(eventDate);
+            routines.weekly[dayName.toLowerCase()].unshift(event.description + " **(EVENT)**");
+            routines.events.splice(index, 1);;
+        }
     });
 
     //+--------------------------------------------------------------------------+
@@ -395,19 +407,25 @@ function parseRoutine(routines) {
         // Add day name
         tasks += "#### " + dayName.toUpperCase() + "\n";
         routines.weekly[dayName].forEach(task => {
-            if(task.startsWith('\t')){
+            if (task.startsWith('\t')) {
                 task = task.replace('\t', '');
                 tasks += "  - [ ] " + task + "\n";
             }
-            if(task == '---'){
+            if (task == '---') {
                 tasks += "\n---\n";
             }
-            else{
+            else {
                 tasks += "- [ ] " + task + "\n";
             }
         });
         tasks += "\n\n"
     }
+
+    fs.readFile(routineFile, 'utf8', function (err, contents) {
+        fs.writeFile(routineFile, JSON.stringify(routines), 'utf8', function (err) {
+            if (err) return console.log(err);
+        });
+    });
 
     fs.readFile(fileTask, 'utf8', function (err, contents) {
         contents = contents.replace(/\*\*\*\n/g, tasks);
@@ -437,14 +455,12 @@ function isForThisWeek(dateToCheck) {
     dateToCheck = new Date(curr.setDate(dateToCheck.getDate()));
     var firstdayOfTheweek = new Date(curr.setDate(curr.getDate() - curr.getDay() + 1));
     var lastdayOfTheweek = new Date(curr.setDate(curr.getDate() - curr.getDay() + 7));
-    console.log(getDayName(firstdayOfTheweek));
-    console.log(getDayName(lastdayOfTheweek));
-    if((dateToCheck.getTime() <= lastdayOfTheweek.getTime() && dateToCheck.getTime() >= firstdayOfTheweek.getTime())) return true
+    if ((dateToCheck.getTime() <= lastdayOfTheweek.getTime() && dateToCheck.getTime() >= firstdayOfTheweek.getTime())) return true
     else return false;
 }
 
-function getDayName(date){
-    return date.getDay() === 0? days[6]: days[date.getDay() - 1];
+function getDayName(date) {
+    return date.getDay() === 0 ? days[6] : days[date.getDay() - 1];
 }
 
 //+--------------------------------------------------------------------------+
@@ -456,7 +472,7 @@ switch (params) {
     case "-h":
         helpMessage();
         process.exit(0);
-        break;    
+        break;
     case "-t":
         console.log("====================== Todolist Generated ======================\n\n");
         generateToDoList();
@@ -485,7 +501,7 @@ switch (params) {
 /**
  * Exit system
  */
-function exitSystem(){
+function exitSystem() {
     setTimeout(() => {
         process.exit(0);
     }, 100);
